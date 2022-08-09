@@ -1,7 +1,9 @@
-## 6. (Optional) Custom scalar である EmailAddress の情報を復元するため、TypeScript で独自型を利用する
+## 6. (Optional) GraphQL の argument に対して TypeScript で独自型を利用する
+
+先程は GraphQL の field 型にたいして TypeScript の独自型を定義しましたが、今度は GraphQL の argument 型に対して TypeScript の独自型を定義しましょう。
 
 ```shell
-git apply patches/fcaf8e5.patch # CoutryString type
+git apply patches/e1814cb.patch # CoutryString type
 ```
 
 <details><summary>:white_check_mark: Result: 上記コマンドで更新される myTypes.ts</summary><div>
@@ -24,7 +26,7 @@ git apply patches/fcaf8e5.patch # CoutryString type
 :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 ```shell
-git apply patches/396b49e.patch # use CountryString in generated code
+git apply patches/10f274d.patch # use CountryString in generated code
 ```
 
 <details><summary>:white_check_mark: Result: 上記コマンドで更新される config.yml</summary><div>
@@ -62,15 +64,47 @@ git apply patches/396b49e.patch # use CountryString in generated code
 :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 ```shell
-git apply patches/e91105b.patch # process args.country inside search
+git apply patches/d224c5e.patch # args.country is typed as CountryString
 ```
 
 <details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
 
 ```diff:server/src/index.ts
-import * as fs from "fs";
- import { CountryCodeResolver, EmailAddressResolver } from "graphql-scalars";
- import { Query, Resolvers } from "./generated/graphql";
+     me(_parent, _args, context, _info) {
+       return context.Query.me;
+     },
+-    search(_parent, _args, context, _info) {
++    search(_parent, args, context, _info) {
++      const countryString = args.country;
++      console.log(countryString);
+       return context.Query.search;
+     },
+   },
+```
+
+---
+
+</div></details>
+
+<details><summary>:white_check_mark: Result: args.countryがCountryString型になっています</summary><div>
+
+![2022-08-10_04h35_54.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/75738/dc1f040d-3697-5a59-21bf-af3bfc26f298.png)
+
+---
+
+</div></details>
+
+それでは、サーバー側ロジックの深い部分でこの CountryString 型を利用することを想定して、コードを書き換えてみましょう。
+
+:large_orange_diamond: Action: 以下のコマンドを入力してください。
+
+```shell
+git apply patches/06d0d6c.patch # process args.country inside search
+```
+
+<details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
+
+```diff:server/src/index.ts
 +import { CountryString } from "./myTypes";
 
  const typeDefs = gql`
@@ -85,13 +119,11 @@ import * as fs from "fs";
  interface LoadingDataContext {
    Query: Query;
  }
-@@ -16,7 +22,9 @@ const resolvers: Resolvers<LoadingDataContext> = {
-     me(_parent, _args, context, _info) {
-       return context.Query.me;
+@@ -18,7 +24,7 @@ const resolvers: Resolvers<LoadingDataContext> = {
      },
--    search(_parent, _args, context, _info) {
-+    search(_parent, args, context, _info) {
-+      const countryString = args.country;
+     search(_parent, args, context, _info) {
+       const countryString = args.country;
+-      console.log(countryString);
 +      processCounteryDeepInsideServer(countryString);
        return context.Query.search;
      },

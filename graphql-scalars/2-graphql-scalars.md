@@ -36,11 +36,15 @@ type Query {
 
 </div></details>
 
-:white_check_mark: Result: この状態ではエラーが出ます
+<details><summary>:white_check_mark: Result: この状態ではエラーが出ます</summary><div>
 
 ```:terminal
 Error: Query.hello defined in resolvers, but not in schema
 ```
+
+---
+
+</div></details>
 
 このエラーを解決しましょう。
 

@@ -14,7 +14,7 @@ TypeScript の静的型チェックによって EmailAddress に変換できな�
 git apply patches/2aa8329.patch # EmailAddressString type
 ```
 
-<details><summary>:white_check_mark: Result: 上記コマンドで生成されるsrc/myTypes.ts。</summary><div>
+<details><summary>:white_check_mark: Result: 上記コマンドで生成されるsrc/myTypes.ts</summary><div>
 
 `str is EmailAddressString` となっているのは、TypeScript の[type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)です。
 
@@ -159,6 +159,8 @@ git apply patches/8b4740d.patch # explicit type checking by type predicates
      },
 ```
 
+`throw new Error` としているので、結局ランタイムエラーになるだけではないか？と思うかもしれませんが、強制的に「isEmailAddressString」を呼び出さざるをえないところがポイントで、ソースコードのどこで型チェックを行うか、プログラマが事前に考えて明示的に記述するようになります。
+
 ---
 
 </div></details>
@@ -174,21 +176,12 @@ git apply patches/8b4740d.patch # explicit type checking by type predicates
 :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 ```shell
-git apply patches/8d95b4f.patch # email is validated near the database
+git apply patches/d065fdd.patch # email is validated near the database
 ```
 
 <details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
 
 ```diff:server/src/index.ts
- import * as fs from "fs";
- import { CountryCodeResolver, EmailAddressResolver } from "graphql-scalars";
- import { Query, Resolvers } from "./generated/graphql";
-+import { EmailAddressString, isEmailAddressString } from "./myTypes";
-
- const typeDefs = gql`
-   ${fs.readFileSync(__dirname.concat("/../schema.gql"), "utf8")}
- `;
-
 +const loadEmailDeepInsideServer = (): EmailAddressString => {
 +  // somewhere like database, deep inside the server side...
 +  const valueFromDatabase = "jason.summerwinnter@gmail.com";
@@ -204,23 +197,24 @@ git apply patches/8d95b4f.patch # email is validated near the database
  interface LoadingDataContext {
    Query: Query;
  }
-@@ -24,8 +37,14 @@ const resolvers: Resolvers<LoadingDataContext> = {
+@@ -25,11 +37,13 @@ const resolvers: Resolvers<LoadingDataContext> = {
      name(parent, _args, _context, _info) {
        return parent.name;
      },
 -    emailAddress(parent, _args, _context, _info) {
--      return "jason.summerwinnter@gmail.com";
+-      const email = "jason.summerwinnter@gmail.com";
+-      if (isEmailAddressString(email)) {
 +    emailAddress(_parent, _args, _context, _info) {
 +      try {
 +        const email = loadEmailDeepInsideServer();
-+        return email;
+         return email;
+-      } else {
 +      } catch (error) {
++        //the server log only, not exposing the internal error detail to the API caller
 +        console.log(error);
-+        throw new Error("An internal error occurred!");
-+      }
-     },
-     country(parent, _args, _context, _info) {
-       return parent.country;
+         throw new Error(
+           "Internal Error occurred: could not retrieve emailAddress"
+         );
 ```
 
 ---
@@ -230,7 +224,7 @@ git apply patches/8d95b4f.patch # email is validated near the database
 :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 ```shell
-git apply patches/6e3ea45.patch # wrong format email address
+git apply patches/80dda3e.patch # wrong format email address
 ```
 
 <details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
@@ -266,7 +260,7 @@ TypeError: value from database = jason.summerwinnter@@@@gmail.com is not a valid
 </div></details>
 
 ```shell
-git apply patches/f28a02e.patch # correct email format
+git apply patches/749a10a.patch # correct email format
 ```
 
 <details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
@@ -290,5 +284,5 @@ git apply patches/f28a02e.patch # correct email format
 :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 ```shell
-git apply patches/3420df7.patch # revert back index.ts
+git apply patches/6d06b65.patch # revert back index.ts
 ```
