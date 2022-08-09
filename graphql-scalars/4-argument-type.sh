@@ -146,4 +146,4 @@ git apply patches/6c02fe8.patch # update data/Query.json
 
 # </div></details>
 
-# GraphQL のクエリ側では、クエリ・リテラルの静的型チェックエラーは働きません。argumentでcustom scalarを使ったときの動作がこれで確認できました。
+# Apollo Studio Explorerのクエリエディタでは、クエリ・リテラルの静的型チェックエラーは働きません。argumentでcustom scalarを使ったときの動作がこれで確認できました。

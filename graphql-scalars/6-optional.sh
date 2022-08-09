@@ -7,7 +7,7 @@ cd ../ || exit               # REMOVE THIS IN aggregate.sh - cd to the git repos
 # ## 6. (Optional) Custom scalarであるEmailAddressの情報を復元するため、TypeScriptで独自型を利用する
 
 # ```shell
-git apply patches/b1acf0c.patch # add CountryCode to schema.gql
+git apply patches/fcaf8e5.patch # CoutryString type
 # ```
 
 # <details><summary>:white_check_mark: Result: 上記コマンドで更新される myTypes.ts</summary><div>
@@ -30,7 +30,7 @@ git apply patches/b1acf0c.patch # add CountryCode to schema.gql
 # :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 # ```shell
-git apply patches/09bc748.patch # add country to index.ts
+git apply patches/396b49e.patch # use CountryString in generated code
 # ```
 
 # <details><summary>:white_check_mark: Result: 上記コマンドで更新される config.yml</summary><div>
@@ -68,12 +68,12 @@ git apply patches/09bc748.patch # add country to index.ts
 # :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
 # ```shell
-git apply patches/6c02fe8.patch # update data/Query.json
+git apply patches/e91105b.patch # process args.country inside search
 # ```
 
-# <details><summary>:white_check_mark: Result: 上記コマンドで更新される myTypes.ts</summary><div>
+# <details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
 
-# ```diff:server/src/myTypes.ts
+# ```diff:server/src/index.ts
 # import * as fs from "fs";
 #  import { CountryCodeResolver, EmailAddressResolver } from "graphql-scalars";
 #  import { Query, Resolvers } from "./generated/graphql";

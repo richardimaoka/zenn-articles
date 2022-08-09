@@ -6,7 +6,13 @@ cd ../ || exit               # REMOVE THIS IN aggregate.sh - cd to the git repos
 
 # ## 5. (Optional) TypeScriptの静的型チェックによってEmailAddressに変換できない形式のstringをエラーとして検出する
 
-# 本チュートリアル[「2. graphql-scalarsをfield型に使った際の動作確認」](#2-graphql-scalars%E3%82%92field%E5%9E%8B%E3%81%AB%E4%BD%BF%E3%81%A3%E3%81%9F%E9%9A%9B%E3%81%AE%E5%8B%95%E4%BD%9C%E7%A2%BA%E8%AA%8D)の最後で、TypeScriptの型チェックを効かせて不正なメールアドレスの形式を検出するには、独自型の利用が必要なことを述べました。以下ではそのテクニックを実際に見ていきます。
+# 本チュートリアル[「2. graphql-scalarsをfield型に使った際の動作確認」](#2-graphql-scalars%E3%82%92field%E5%9E%8B%E3%81%AB%E4%BD%BF%E3%81%A3%E3%81%9F%E9%9A%9B%E3%81%AE%E5%8B%95%E4%BD%9C%E7%A2%BA%E8%AA%8D)の最後で、以下のように記載しました。
+
+# :::note info
+# TypeScriptの静的型チェックによってEmailAddressに変換できない形式のstringをエラーとして検出するには、このチュートリアルの5. および 6. で紹介する独自型の定義を使ったテクニックが必要です。
+# :::
+
+# ここからは、そのテクニックを実際に見ていきます。なお、以下の手順を作成するに当たり[Wantedly Engineer Blog - graphql-codegen と Nominal Typing(Branded Type) で Custom Scalar をちょっといい感じにする](https://en-jp.wantedly.com/companies/wantedly/post_articles/387161)を参考にしました。
 
 # :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
@@ -15,6 +21,8 @@ git apply patches/2aa8329.patch # EmailAddressString type
 # ```
 
 # <details><summary>:white_check_mark: Result: 上記コマンドで生成されるsrc/myTypes.ts。</summary><div>
+
+# `str is EmailAddressString` となっているのは、TypeScriptの[type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)です。
 
 # ```typescript:src/myTypes.ts
 # export type EmailAddressString = string & { __type: "EmailAddressString" };
@@ -33,7 +41,7 @@ git apply patches/2aa8329.patch # EmailAddressString type
 
 # </div></details>
 
-# それでは、定義したEmailAddressString型を自動生成されるgraphql.tsの中で利用する設定を行いましょう。
+# それでは、定義したEmailAddressString型を、graphql.tsの中でimportする設定を行いましょう。graphql.tsはGraphQL Codegeによって自動生成されるので、ひと工夫必要です。
 
 # :large_orange_diamond: Action: 以下のコマンドを入力してください。
 
@@ -124,6 +132,47 @@ git apply patches/fdf1ea5.patch # emailAddress does not allow plain string
 # ---
 
 # </div></details>
+
+# ![2022-08-09_06h26_31.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/75738/39ef6a64-8bc1-4c66-3170-ce9cc955c53a.png)
+
+# ```
+# graphql.ts(193, 3): The expected type comes from property 'emailAddress' which is declared here on type 'PersonResolvers<LoadingDataContext, Person>'
+# ```
+
+# ---
+
+# </div></details>
+
+
+# それでは型チェックエラーを解決しましょう。
+
+# ```shell
+git apply patches/8b4740d.patch # explicit type checking by type predicates
+# ```
+
+# <details><summary>:white_check_mark: Result: 上記コマンドで更新される index.ts</summary><div>
+
+# 下記の変更によって、明示的にisEmailAddress関数を呼んで、stringがただのstringではなく、EmailAddressStringであることをチェックしています。
+
+# ```diff:server/src/index.ts
+#      emailAddress(parent, _args, _context, _info) {
+# -      return "jason.summerwinnter@gmail.com";
+# +      const email = "jason.summerwinnter@gmail.com";
+# +      if (isEmailAddressString(email)) {
+# +        return email;
+# +      } else {
+# +        throw new Error(
+# +          "Internal Error occurred: could not retrieve emailAddress"
+# +        );
+# +      }
+#      },
+# ```
+
+# ---
+
+# </div></details>
+
+
 
 # これで、TypeScript型チェックを効かせてメールアドレスのフォーマットをチェックできるようになりました！
 
