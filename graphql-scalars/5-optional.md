@@ -84,8 +84,6 @@ git apply patches/e6f57b6.patch # Use EmailAddressString in codegen.yml
 
 ---
 
----
-
 </div></details>
 
 :large_orange_diamond: Action: 以下のコマンドを入力してください。
@@ -114,16 +112,6 @@ git apply patches/fdf1ea5.patch # emailAddress does not allow plain string
 <details><summary>:white_check_mark: Result: TypeScript型チェックによるエラーの確認</summary><div>
 
 ただの String 型では、たとえ正しいメールアドレスのフォーマットであっても型エラーになります。
-
-![2022-08-09_06h26_31.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/75738/39ef6a64-8bc1-4c66-3170-ce9cc955c53a.png)
-
-```
-graphql.ts(193, 3): The expected type comes from property 'emailAddress' which is declared here on type 'PersonResolvers<LoadingDataContext, Person>'
-```
-
----
-
-</div></details>
 
 ![2022-08-09_06h26_31.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/75738/39ef6a64-8bc1-4c66-3170-ce9cc955c53a.png)
 
