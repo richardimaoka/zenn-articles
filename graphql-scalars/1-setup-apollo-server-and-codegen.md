@@ -8,7 +8,6 @@
 
 ```terminal
 mkdir server
-shellcheck disable=SC2164 # REMOVE THIS IN aggregate.sh
 cd server
 
 # node.js setup
@@ -27,12 +26,11 @@ npm pkg set scripts.start="ts-node-dev --watch src/* --respawn src/index.ts"
 npm install apollo-server graphql
 
 # install and setup graphql-codegen
-npm install -D @graphql-codegen/cli # @2.10.0
+npm install --save-dev @graphql-codegen/cli
 # ここで npx graphql-code-generator init を行ってもよいが、そうすると対話モードに入って手入力が増えるのと、
 # 結局は npx graphql-code-generator init で生成されたconfig.ymlを上書き更新することになるので、以下はnpm installのみ行って config.ymlは後ほど作成
 npm install --save-dev  @graphql-codegen/typescript @graphql-codegen/typescript-resolvers
-npm set-script generate "graphql-codegen --config codegen.yml --watch ./schema.gql" # update generate script
-
+npm pkg set scripts.start="graphql-codegen --config codegen.yml --watch ./schema.gql" # update generate script
 
 # copy files
 mkdir src
